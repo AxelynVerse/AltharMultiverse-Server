@@ -260,10 +260,8 @@ app.get("/api/fakeff", async (req, res) => {
         const apiUrl =
             `https://apii.nexadev.my.id/fakeff?usn=${encodeURIComponent(usn)}`;
 
-        const response = await fetch(apiUrl);
-
-        const contentType =
-            response.headers.get("content-type") || "";
+        const response =
+            await fetch(apiUrl);
 
         if (!response.ok) {
             return res.status(response.status).json({
@@ -272,21 +270,24 @@ app.get("/api/fakeff", async (req, res) => {
             });
         }
 
-        // Jika API mengembalikan JSON
-        if (contentType.includes("application/json")) {
+        const contentType =
+            response.headers.get("content-type") ||
+            "image/jpeg";
 
-            const data = await response.json();
-
-            return res.json(data);
-        }
-
-        // Jika API mengembalikan gambar langsung
         const buffer =
-            Buffer.from(await response.arrayBuffer());
+            Buffer.from(
+                await response.arrayBuffer()
+            );
 
+        res.status(200);
         res.setHeader(
             "Content-Type",
-            contentType || "image/png"
+            contentType
+        );
+
+        res.setHeader(
+            "Cache-Control",
+            "public, max-age=3600"
         );
 
         return res.send(buffer);
@@ -298,7 +299,7 @@ app.get("/api/fakeff", async (req, res) => {
             error
         );
 
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             message: "Server error.",
             error: error.message
