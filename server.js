@@ -178,6 +178,68 @@ app.get("/api/brat", async (req, res) => {
     }
 });
 
+// =================================
+// IMAGE UPSCALER
+// =================================
+
+app.get("/api/upscale", async (req, res) => {
+
+    try {
+
+        const { url, resolusi } = req.query;
+
+        if (!url) {
+            return res.status(400).json({
+                success: false,
+                message: "URL gambar wajib diisi."
+            });
+        }
+
+        const response = await fetch(
+            `https://api.nexadev.my.id/api/upscale1?url=${encodeURIComponent(url)}&resolusi=${encodeURIComponent(resolusi || "2")}`
+        );
+
+        if (!response.ok) {
+
+            return res.status(response.status).json({
+                success: false,
+                message: "Gagal melakukan upscale."
+            });
+
+        }
+
+        const contentType =
+            response.headers.get("content-type") ||
+            "image/png";
+
+        const buffer =
+            Buffer.from(
+                await response.arrayBuffer()
+            );
+
+        res.setHeader(
+            "Content-Type",
+            contentType
+        );
+
+        res.send(buffer);
+
+    } catch (error) {
+
+        console.error(
+            "Upscale Error:",
+            error
+        );
+
+        res.status(500).json({
+            success: false,
+            message: "Server error."
+        });
+
+    }
+
+});
+
 /* =================================
    VERCEL EXPORT
 ================================= */
