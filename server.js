@@ -240,6 +240,74 @@ app.get("/api/upscale", async (req, res) => {
 
 });
 
+// =================================
+// TOOL 005 — FAKE FREE FIRE V2
+// =================================
+
+app.get("/api/fakeff", async (req, res) => {
+
+    try {
+
+        const { usn } = req.query;
+
+        if (!usn) {
+            return res.status(400).json({
+                success: false,
+                message: "Nickname Free Fire wajib diisi."
+            });
+        }
+
+        const apiUrl =
+            `https://apii.nexadev.my.id/fakeff?usn=${encodeURIComponent(usn)}`;
+
+        const response = await fetch(apiUrl);
+
+        const contentType =
+            response.headers.get("content-type") || "";
+
+        if (!response.ok) {
+            return res.status(response.status).json({
+                success: false,
+                message: "Gagal membuat mockup Free Fire."
+            });
+        }
+
+        // Jika API mengembalikan JSON
+        if (contentType.includes("application/json")) {
+
+            const data = await response.json();
+
+            return res.json(data);
+        }
+
+        // Jika API mengembalikan gambar langsung
+        const buffer =
+            Buffer.from(await response.arrayBuffer());
+
+        res.setHeader(
+            "Content-Type",
+            contentType || "image/png"
+        );
+
+        return res.send(buffer);
+
+    } catch (error) {
+
+        console.error(
+            "FakeFF Error:",
+            error
+        );
+
+        res.status(500).json({
+            success: false,
+            message: "Server error.",
+            error: error.message
+        });
+
+    }
+
+});
+
 /* =================================
    VERCEL EXPORT
 ================================= */
